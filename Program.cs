@@ -7,9 +7,15 @@ using Tickets.Domain.Interfaces;
 using Tickets.Infraestructure.Identity;
 using Tickets.Infraestructure.Persistence;
 using Tickets.Infraestructure.Persistence.Repositories;
+using Tickets.Infrastructure.Persistence.Repositories;
 using Tickets.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // Add services to the container.
 
@@ -30,9 +36,13 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(options=>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {
@@ -50,6 +60,12 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -61,5 +77,36 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Creando data por defecto
+using (var scope = app.Services.CreateScope())
+{
+    var roleRepository = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+    var roles = new[] { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleRepository.RoleExistsAsync(role))
+        {
+            await roleRepository.CreateRole(role);
+        }
+    }
+
+    var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+
+    if (!await userRepository.UserExists("admin@admin.com"))
+    {
+        var result = userRepository.CreateUser(
+            new Tickets.Domain.Entities.Usuario()
+            {
+                Email = "admin@admin.com",
+                Password = "Admin123!",
+                FirstName = "Admin",
+                LastName = "Admin"
+            }).Result;
+
+        var resultUserToRole = userRepository.AddToRoleAsync(result, "Admin").Result;
+    }
+}
 
 app.Run();
