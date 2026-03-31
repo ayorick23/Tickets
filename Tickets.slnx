@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../Tickets.Application/Tickets.Application.csproj" />
+  <Project Path="../Tickets.Domain/Tickets.Domain.csproj" />
+  <Project Path="../Tickets.Infraestructure/Tickets.Infrastructure.csproj" />
+  <Project Path="Tickets.csproj" />
+</Solution>
