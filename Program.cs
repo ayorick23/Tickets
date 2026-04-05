@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Tickets.Application.Services;
 using Tickets.Domain.Interfaces;
+using Tickets.Domain.Interfaces.Repositories;
 using Tickets.Infraestructure.Identity;
 using Tickets.Infraestructure.Persistence;
 using Tickets.Infraestructure.Persistence.Repositories;
@@ -34,9 +35,11 @@ builder.Services.AddOpenApi();
 
 // Inyectando servicios
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ITicketsRepository, TicketRepository>();
+builder.Services.AddScoped<TicketsCase>();
+builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddAuthentication(options=>
 {
