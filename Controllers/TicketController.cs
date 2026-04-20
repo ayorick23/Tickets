@@ -50,5 +50,18 @@ namespace Tickets.Controllers
         {
             return Ok(await _ticketsCase.FindByIdAsync(ticketId));
         }
+
+        [HttpDelete("{ticketId:int}")]
+        public async Task<IActionResult> Delete(int ticketId)
+        {
+            var result = await _ticketsCase.Delete(ticketId);
+            return Ok(new { Success = result });
+        }
+
+        [HttpGet("{take:int}/{skip:int}/{search?}")]
+        public async Task<IActionResult> GetAll(int take, int skip, string search = "")
+        {
+            return Ok(await _ticketsCase.GetAll(take, skip, search));
+        }
     }
 }
